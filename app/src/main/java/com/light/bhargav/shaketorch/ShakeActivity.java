@@ -1,14 +1,17 @@
 package com.light.bhargav.shaketorch;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +26,6 @@ public class ShakeActivity extends Activity implements SensorEventListener {
     private boolean isFlashOn;
     private boolean hasFlash;
     private Camera.Parameters params;
-    private MediaPlayer mp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,13 +60,15 @@ public class ShakeActivity extends Activity implements SensorEventListener {
         }
 
         dataView.setText(Float.toString(event.values[2]) + "\n" +
-                         Float.toString(event.values[1]) + "\n" +
-                         Float.toString(event.values[0]));
+                Float.toString(event.values[1]) + "\n" +
+                Float.toString(event.values[0]));
 
         if(event.values[2]<-35) {
+            System.out.println("<-35 detected");
             negativeLimted.setText(Float.toString(event.values[2]));
             getCamera();
             turnOnFlash();
+            //SystemClock.sleep(2000);
         }
 
         if(event.values[2]<0) {
@@ -86,13 +90,14 @@ public class ShakeActivity extends Activity implements SensorEventListener {
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
         if (!hasFlash) {
             // device doesn't support flash
-            Toast.makeText(getApplicationContext(),"No flash support",Toast.LENGTH_LONG);
+            Toast.makeText(getApplicationContext(), "No flash support", Toast.LENGTH_LONG);
         }
     }
 
     public void turnOnFlash(){
         //if flash is off
         if (!isFlashOn) {
+            System.out.println("switching on the flash");
             if (camera == null || params == null) {
                 return;
             }
@@ -101,8 +106,11 @@ public class ShakeActivity extends Activity implements SensorEventListener {
             camera.setParameters(params);
             camera.startPreview();
             isFlashOn = true;
+
+            //SystemClock.sleep(5000);
         }
         /*else{
+            System.out.println("switching off the flash");
             if (camera == null || params == null) {
                 return;
             }
@@ -117,5 +125,13 @@ public class ShakeActivity extends Activity implements SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
+    }
+
+    public void startService(View view){
+        EditText input = (EditText) findViewById(R.id.serviceText);
+        String strInputMsg = input.getText().toString();
+        Intent msgIntent = new Intent(this, MyService.class);
+        msgIntent.putExtra(MyService.PARAM_IN_MSG, strInputMsg);
+        startService(msgIntent);
     }
 }
